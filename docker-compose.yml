@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  solv-agent:
+    build: .
+    container_name: solv-agent
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./rag:/app/rag
+      - ./.env:/app/.env
+    environment:
+      # Заменяем localhost на имя сервиса n8n в docker-сети
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook/ticket
+    restart: unless-stopped
+    depends_on:
+      - n8n
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+    restart: unless-stopped
+
+volumes:
+  n8n_data:
