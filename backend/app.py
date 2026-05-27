@@ -43,6 +43,7 @@ class ChatRequest(BaseModel):
     message: str
     top_k: int = 3
     temperature: float = 0.7
+    history: List[Dict[str, str]] = []
 
 class ChatResponse(BaseModel):
     answer: str
@@ -62,7 +63,12 @@ async def chat(req: ChatRequest) -> ChatResponse:
     if not req.message.strip():
         raise HTTPException(status_code=400, detail="Message is empty")
 
-    query_vec = embed_text([req.message])
+    search_query = req.message
+    last_user_msgs = [m["content"] for m in req.history if m["role"] == "user"]
+    if last_user_msgs:
+        search_query = f"{last_user_msgs[-1]} {req.message}"
+
+    query_vec = embed_text([search_query])
     
     try:
         qdrant = load_qdrant_client(RAG_DIR)
@@ -81,10 +87,10 @@ async def chat(req: ChatRequest) -> ChatResponse:
         "Если пользователь задает ИТ-вопрос, но информации в контексте нет, ответь строго одной фразой: 'Нет информации'."
     )
 
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Вопрос: {req.message}\n\nКонтекст базы знаний:\n{context_text}"},
-    ]
+    messages = [{"role": "system", "content": system_prompt}]
+    for msg in req.history:
+        messages.append(msg)
+    messages.append({"role": "user", "content": f"Вопрос: {req.message}\n\nКонтекст базы знаний:\n{context_text}"})
 
     answer = client.chat(messages=messages, model="gemma2:2b", temperature=req.temperature)
     

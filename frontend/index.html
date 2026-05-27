@@ -548,6 +548,7 @@
     const sendBtn = document.getElementById("chat-send");
 
     let isSending = false;
+    let chatHistory = [];
 
     function appendMessage(text, from, suggestTicket = false) {
       const div = document.createElement("div");
@@ -633,7 +634,7 @@
         const res = await fetch(API_BASE + "/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, top_k: 3 })
+          body: JSON.stringify({ message: text, top_k: 3, history: chatHistory.slice(-4) })
         });
 
         if (!res.ok) {
@@ -643,6 +644,9 @@
         const data = await res.json();
         removeTyping();
         appendMessage(data.answer, "bot", data.suggest_ticket);
+
+        chatHistory.push({ role: "user", content: text });
+        chatHistory.push({ role: "assistant", content: data.answer });
       } catch (err) {
         console.error(err);
         removeTyping();
