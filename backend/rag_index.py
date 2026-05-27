@@ -20,10 +20,10 @@ def search_similar(
     if not client.collection_exists(collection_name):
         return []
 
-    results = client.search(
+    results = client.query_points(
         collection_name=collection_name,
-        query_vector=query_vec,
+        query=query_vec,
         limit=k
     )
     
-    return [hit.payload for hit in results]
+    return [hit.payload for hit in results.points]
