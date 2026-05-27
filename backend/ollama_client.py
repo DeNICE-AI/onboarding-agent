@@ -11,6 +11,7 @@ class OllamaClient:
             "model": model,
             "messages": messages,
             "stream": False,
+            "keep_alive": 0,
             "options": {
                 "temperature": temperature
             }
@@ -23,7 +24,8 @@ class OllamaClient:
         url = f"{self._base_url}/api/embed"
         payload = {
             "model": model,
-            "input": texts
+            "input": texts,
+            "keep_alive": 0
         }
         response = requests.post(url, json=payload, timeout=60)
         
@@ -35,7 +37,7 @@ class OllamaClient:
             for text in texts:
                 res = requests.post(
                     f"{self._base_url}/api/embeddings", 
-                    json={"model": model, "prompt": text},
+                    json={"model": model, "prompt": text, "keep_alive": 0},
                     timeout=60
                 )
                 res.raise_for_status()
