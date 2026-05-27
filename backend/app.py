@@ -89,7 +89,7 @@ async def chat(req: ChatRequest) -> ChatResponse:
         {"role": "user", "content": f"Вопрос: {req.message}\n\nКонтекст базы знаний:\n{context_text}"},
     ]
 
-    answer = client.chat(messages=messages, model="gemma4:e4b", temperature=req.temperature)
+    answer = client.chat(messages=messages, model="gemma:2b", temperature=req.temperature)
     
     suggest_ticket = False
     if "я не знаю" in answer.lower() or "создайте обращение" in answer.lower():
