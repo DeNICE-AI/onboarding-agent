@@ -76,12 +76,8 @@ async def chat(req: ChatRequest) -> ChatResponse:
     )
 
     system_prompt = (
-        "Ты ИИ-ассистент службы технической поддержки SOLV компании ГК ТОФС. "
-        "Твоя задача — профессионально помогать сотрудникам по вопросам ИТ, используя ТОЛЬКО предоставленный контекст базы знаний. "
-        "Если пользователь просто здоровается (например, 'Привет' или 'Здравствуйте'), вежливо поздоровайся в ответ и предложи задать вопрос по ИТ. "
-        "КРИТИЧНОЕ ПРАВИЛО: Если вопрос пользователя касается ИТ-проблемы или рабочей задачи, но в контексте НЕТ точной информации для ответа, ты ДОЛЖЕН ответить строго этой фразой: "
-        "'Я не знаю ответ на этот вопрос. Пожалуйста, создайте обращение в службу поддержки.' "
-        "Никогда не придумывай информацию от себя и не используй знания вне предоставленного текста."
+        "Ты ИИ-ассистент ИТ-поддержки SOLV. Ответь на вопрос пользователя, используя ТОЛЬКО предоставленный контекст. "
+        "Если информации в контексте нет, ответь строго одной фразой: 'Нет информации'."
     )
 
     messages = [
@@ -89,11 +85,12 @@ async def chat(req: ChatRequest) -> ChatResponse:
         {"role": "user", "content": f"Вопрос: {req.message}\n\nКонтекст базы знаний:\n{context_text}"},
     ]
 
-    answer = client.chat(messages=messages, model="gemma:2b", temperature=req.temperature)
+    answer = client.chat(messages=messages, model="gemma2:2b", temperature=req.temperature)
     
     suggest_ticket = False
-    if "я не знаю" in answer.lower() or "создайте обращение" in answer.lower():
+    if "нет информации" in answer.lower() or "я не знаю" in answer.lower() or "создайте обращение" in answer.lower():
         suggest_ticket = True
+        answer = "Я не знаю ответ на этот вопрос. Пожалуйста, создайте обращение в службу поддержки."
 
     return ChatResponse(answer=answer, context=similar_items, suggest_ticket=suggest_ticket)
 
