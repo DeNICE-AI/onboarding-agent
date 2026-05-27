@@ -29,6 +29,7 @@ services:
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
       - NODE_ENV=production
+      - N8N_SECURE_COOKIE=false
     restart: unless-stopped
 
 volumes:
