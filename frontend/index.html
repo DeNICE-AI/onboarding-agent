@@ -9,13 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #0b0f19;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --secondary: #8b5cf6;
-      --card-bg: rgba(255, 255, 255, 0.03);
-      --card-border: rgba(255, 255, 255, 0.05);
+      --bg-color: #07302D;
+      --text-main: #FFFFFF;
+      --text-muted: #D9D9D9;
+      --primary: #03BE93;
+      --secondary: #038073;
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.1);
+      --form-bg: rgba(0, 0, 0, 0.2);
     }
 
     * {
@@ -73,7 +74,7 @@
       font-size: 24px;
       font-weight: 800;
       letter-spacing: -1px;
-      background: linear-gradient(to right, var(--primary), var(--secondary));
+      background: linear-gradient(to right, var(--text-main), var(--primary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -211,7 +212,7 @@
       max-width: calc(100vw - 64px);
       height: 520px;
       max-height: calc(100vh - 140px);
-      background: rgba(11, 15, 25, 0.85);
+      background: rgba(7, 48, 45, 0.95);
       border-radius: 24px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       display: flex;
@@ -378,6 +379,61 @@
       transform: none;
     }
 
+    /* Ticket form inside chat */
+    .ticket-form {
+      display: none;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+      background: var(--form-bg);
+      border-radius: 12px;
+      margin-top: 10px;
+      border: 1px solid var(--card-border);
+    }
+    .ticket-form.visible {
+      display: flex;
+    }
+    .ticket-input, .ticket-textarea {
+      width: 100%;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: #fff;
+      font-family: inherit;
+    }
+    .ticket-input:focus, .ticket-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .ticket-textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+    .ticket-submit {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: #fff;
+      border: none;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .ticket-submit:hover {
+      opacity: 0.9;
+    }
+    .btn-suggest-ticket {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 12px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
     /* Typing indicator */
     .typing-indicator {
       display: inline-flex;
@@ -410,39 +466,39 @@
 
   <div class="container">
     <header>
-      <div class="logo">Corporate Portal</div>
+      <div class="logo">ГК ТОФС | SOLV</div>
       <a href="#" class="btn" style="padding: 10px 20px; font-size: 14px;">Мой Профиль</a>
     </header>
 
     <section class="hero">
-      <h1>Добро пожаловать в команду!</h1>
-      <p>Внутренний портал для сотрудников. Здесь вы найдете всю необходимую информацию для комфортной адаптации и работы.</p>
-      <a href="#onboarding" class="btn">Начать адаптацию</a>
+      <h1>Служба поддержки SOLV</h1>
+      <p>Единое окно для решения всех ИТ-вопросов. Наш интеллектуальный ассистент и специалисты поддержки всегда готовы помочь.</p>
+      <a href="#onboarding" class="btn">Перейти к сервисам</a>
     </section>
 
     <section id="onboarding" class="projects">
-      <h2 class="section-title">Полезные ссылки</h2>
+      <h2 class="section-title">Полезные сервисы</h2>
       <div class="grid">
         
         <div class="card">
-          <h3>Кадры и Документы</h3>
-          <p>Инструкции по оформлению отпусков, больничных и заказа справок.</p>
+          <h3>База знаний</h3>
+          <p>Инструкции по настройке VPN, доступу к почте, VDI и ERP системам.</p>
           <a href="#" class="card-link">
             Перейти <span>→</span>
           </a>
         </div>
 
         <div class="card">
-          <h3>IT и Безопасность</h3>
-          <p>Заказ оборудования, настройка почты, VPN и правила информационной безопасности.</p>
+          <h3>Оформление заявок</h3>
+          <p>Заказ оборудования, выдача прав доступа и установка ПО.</p>
           <a href="#" class="card-link">
             Перейти <span>→</span>
           </a>
         </div>
 
         <div class="card">
-          <h3>Корпоративная жизнь</h3>
-          <p>Мероприятия, новости компании, бенефиты и скидки для сотрудников.</p>
+          <h3>Статус сервисов</h3>
+          <p>Информация о плановых работах и доступности ИТ-систем.</p>
           <a href="#" class="card-link">
             Перейти <span>→</span>
           </a>
@@ -462,8 +518,8 @@
       <div class="chat-header-left">
         <div class="avatar">AI</div>
         <div>
-          <div class="chat-title">HR-Ассистент</div>
-          <div class="chat-subtitle">Онбординг 24/7</div>
+          <div class="chat-title">SOLV Ассистент</div>
+          <div class="chat-subtitle">Служба ИТ поддержки</div>
         </div>
       </div>
       <button class="chat-close" id="chat-close" aria-label="Закрыть чат">×</button>
@@ -493,12 +549,58 @@
 
     let isSending = false;
 
-    function appendMessage(text, from) {
+    function appendMessage(text, from, suggestTicket = false) {
       const div = document.createElement("div");
       div.className = "chat-message " + from;
       div.textContent = text;
+      
+      if (suggestTicket) {
+        const btn = document.createElement("button");
+        btn.className = "btn-suggest-ticket";
+        btn.textContent = "Написать в тех поддержку";
+        btn.onclick = () => showTicketForm(div);
+        div.appendChild(document.createElement("br"));
+        div.appendChild(btn);
+      }
+
       messagesEl.appendChild(div);
       messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function showTicketForm(parentDiv) {
+      // Remove any existing forms first
+      document.querySelectorAll(".ticket-form").forEach(f => f.remove());
+      
+      const form = document.createElement("div");
+      form.className = "ticket-form visible";
+      form.innerHTML = `
+        <input type="text" class="ticket-input" id="ticket-subject" placeholder="Тема обращения" />
+        <textarea class="ticket-textarea" id="ticket-message" placeholder="Текст обращения..."></textarea>
+        <button class="ticket-submit" id="ticket-submit-btn">Отправить письмо</button>
+      `;
+      parentDiv.appendChild(form);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      document.getElementById("ticket-submit-btn").onclick = async () => {
+        const subject = document.getElementById("ticket-subject").value.trim();
+        const msg = document.getElementById("ticket-message").value.trim();
+        if (!subject || !msg) return alert("Заполните все поля");
+        
+        try {
+          const res = await fetch(API_BASE + "/api/ticket", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ subject: subject, message: msg })
+          });
+          if (res.ok) {
+            form.innerHTML = "<p style='color: var(--primary); font-size: 13px;'>Заявка успешно отправлена!</p>";
+          } else {
+            form.innerHTML = "<p style='color: red; font-size: 13px;'>Ошибка при отправке.</p>";
+          }
+        } catch (err) {
+          form.innerHTML = "<p style='color: red; font-size: 13px;'>Ошибка соединения.</p>";
+        }
+      };
     }
 
     function appendTyping() {
@@ -540,7 +642,7 @@
 
         const data = await res.json();
         removeTyping();
-        appendMessage(data.answer, "bot");
+        appendMessage(data.answer, "bot", data.suggest_ticket);
       } catch (err) {
         console.error(err);
         removeTyping();
@@ -556,7 +658,7 @@
       widget.classList.remove("hidden");
       launcher.style.transform = "scale(0)";
       if (!messagesEl.hasChildNodes()) {
-        appendMessage("Привет! Я HR-ассистент. Задай мне вопрос об оформлении, инструментах или чеклистах на испытательный срок.", "bot");
+        appendMessage("Привет! Я ИИ-ассистент SOLV. Задай мне любой вопрос об ИТ-сервисах ГК ТОФС.", "bot");
       }
       setTimeout(() => inputEl.focus(), 300);
     });

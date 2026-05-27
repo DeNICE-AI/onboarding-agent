@@ -1,0 +1,81 @@
+{
+  "name": "SOLV Ticket Email Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "ticket",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "e2101df4-0466-4d05-ac1f-c2662fa9e5fb",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1.1,
+      "position": [
+        460,
+        460
+      ],
+      "webhookId": "solv-ticket-webhook"
+    },
+    {
+      "parameters": {
+        "fromEmail": "solv-bot@tofs.ru",
+        "toEmail": "denisiunusov@yahoo.com",
+        "subject": "={{ $json.body.subject || 'Новая заявка в SOLV' }}",
+        "html": "=<p>Новая заявка из чата поддержки SOLV:</p><p><strong>Тема:</strong> {{ $json.body.subject }}</p><p><strong>Текст обращения:</strong></p><p>{{ $json.body.message }}</p>",
+        "options": {}
+      },
+      "id": "c1f7b02b-a45e-4ed2-a59e-4e451c8b327b",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        680,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "1d2a1b9c-1234-4abc-9ef0-1a2b3c4d5e6f",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        900,
+        460
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1"
+}

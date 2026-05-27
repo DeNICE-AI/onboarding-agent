@@ -1,5 +1,7 @@
 import os
-from typing import List, Dict, Any
+import json
+import requests
+from typing import List, Dict, Any, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,12 +10,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
-import faiss
-import numpy as np
+from qdrant_client import QdrantClient
 from .gigachat_client import GigaChatClient
-
-from .rag_index import load_index, search_similar
-
+from .rag_index import load_qdrant_client, search_similar
 
 load_dotenv()
 
@@ -22,9 +21,11 @@ GIGACHAT_CLIENT_SECRET = os.getenv("GIGACHAT_CLIENT_SECRET")
 if not GIGACHAT_CLIENT_ID or not GIGACHAT_CLIENT_SECRET:
     raise RuntimeError("GIGACHAT_CLIENT_ID or GIGACHAT_CLIENT_SECRET is not set. Please set it in your environment or in a .env file.")
 
+N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "http://localhost:5678/webhook/ticket")
+
 client = GigaChatClient(client_id=GIGACHAT_CLIENT_ID, client_secret=GIGACHAT_CLIENT_SECRET, verify=False)
 
-app = FastAPI(title="FAQ RAG Assistant")
+app = FastAPI(title="SOLV FAQ RAG Assistant")
 
 app.add_middleware(
     CORSMiddleware,
@@ -35,33 +36,30 @@ app.add_middleware(
 )
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
+RAG_DIR = os.path.join(os.path.dirname(__file__), "..", "rag")
+COLLECTION_NAME = "solv_faq"
 
 @app.get("/")
 async def serve_frontend():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
 
-
-
 class ChatRequest(BaseModel):
     message: str
     top_k: int = 3
-
+    temperature: float = 0.7
 
 class ChatResponse(BaseModel):
     answer: str
     context: List[Dict[str, Any]]
+    suggest_ticket: bool
 
+class TicketRequest(BaseModel):
+    subject: str
+    message: str
 
-INDEX_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "faiss_index.bin")
-META_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "faqs_metadata.npy")
-
-faiss_index, metadata = load_index(INDEX_PATH, META_PATH)
-
-
-def embed_text(texts: List[str]) -> np.ndarray:
+def embed_text(texts: List[str]) -> list:
     vectors = client.get_embeddings(texts)
-    return np.array(vectors, dtype="float32")
-
+    return vectors[0]
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest) -> ChatResponse:
@@ -69,33 +67,54 @@ async def chat(req: ChatRequest) -> ChatResponse:
         raise HTTPException(status_code=400, detail="Message is empty")
 
     query_vec = embed_text([req.message])
-    similar_items = search_similar(faiss_index, metadata, query_vec, k=req.top_k)
+    
+    try:
+        qdrant = load_qdrant_client(RAG_DIR)
+        similar_items = search_similar(qdrant, COLLECTION_NAME, query_vec, k=req.top_k)
+    except Exception as e:
+        print(f"Error loading Qdrant: {e}")
+        similar_items = []
 
     context_text = "\n\n".join(
-        [f"Q: {item['question']}\nA: {item['answer']}" for item in similar_items]
+        [f"Source: {item.get('title', item.get('source'))}\nContent: {item.get('text')}" for item in similar_items]
     )
 
     system_prompt = (
-        "Ты ИИ-ассистент для онбординга новых сотрудников компании. Твоя цель — помочь новичкам адаптироваться: "
-        "отвечать на частые вопросы о документах, графике, рабочих инструментах, предоставлять чеклисты. "
-        "Стиль общения: доброжелательный, структурированный, корпоративный. "
-        "Ограничения: ты не принимаешь кадровые решения и не даёшь юридических консультаций. Если вопрос сложный или выходит за рамки твоей компетенции, "
-        "чётко направляй запрос к профильным специалистам (HR, IT-отдел). "
-        "Используй предоставленный контекст для формирования ответа."
+        "Ты ИИ-ассистент службы технической поддержки SOLV компании ГК ТОФС. "
+        "Твоя задача — профессионально помогать сотрудникам по вопросам ИТ, используя только предоставленный контекст базы знаний. "
+        "Отвечай четко, структурировано и вежливо. "
+        "КРИТИЧНОЕ ПРАВИЛО: Если в контексте нет информации для ответа на вопрос пользователя, ты ДОЛЖЕН ответить только фразой: "
+        "'Я не знаю ответ на этот вопрос. Пожалуйста, создайте обращение в службу поддержки.' "
+        "Не придумывай информацию от себя."
     )
 
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Вопрос пользователя: {req.message}\n\nКонтекст FAQ:\n{context_text}"},
+        {"role": "user", "content": f"Вопрос: {req.message}\n\nКонтекст базы знаний:\n{context_text}"},
     ]
 
-    answer = client.chat(messages=messages, temperature=0.2)
+    answer = client.chat(messages=messages, temperature=req.temperature)
+    
+    suggest_ticket = False
+    if "я не знаю" in answer.lower() or "создайте обращение" in answer.lower():
+        suggest_ticket = True
 
-    return ChatResponse(answer=answer, context=similar_items)
+    return ChatResponse(answer=answer, context=similar_items, suggest_ticket=suggest_ticket)
 
+@app.post("/api/ticket")
+async def create_ticket(req: TicketRequest):
+    try:
+        response = requests.post(
+            N8N_WEBHOOK_URL,
+            json={"subject": req.subject, "message": req.message},
+            timeout=10
+        )
+        response.raise_for_status()
+        return {"status": "success", "detail": "Ticket sent to n8n successfully"}
+    except Exception as e:
+        print(f"Error sending ticket to n8n: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send ticket. Is n8n running?")
 
 @app.get("/health")
 async def health():
     return {"status": "ok"}
-
-

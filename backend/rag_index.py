@@ -1,41 +1,29 @@
-import json
 import os
-from typing import List, Tuple, Any
+from typing import List, Dict, Any
+from qdrant_client import QdrantClient
 
-import faiss
-import numpy as np
-
-
-def load_index(index_path: str, meta_path: str) -> Tuple[faiss.IndexFlatL2, np.ndarray]:
-    if not os.path.exists(index_path) or not os.path.exists(meta_path):
+def load_qdrant_client(rag_dir: str) -> QdrantClient:
+    if not os.path.exists(rag_dir):
         raise RuntimeError(
-            "FAISS index or metadata not found. "
+            "Qdrant directory not found. "
             "Run `python backend/build_index.py` first to build the RAG index."
         )
-
-    index = faiss.read_index(index_path)
-    metadata = np.load(meta_path, allow_pickle=True)
-    return index, metadata
-
+    return QdrantClient(path=rag_dir)
 
 def search_similar(
-    index: faiss.IndexFlatL2,
-    metadata: np.ndarray,
-    query_vec: np.ndarray,
+    client: QdrantClient,
+    collection_name: str,
+    query_vec: list,
     k: int = 3,
-) -> List[Any]:
-    distances, indices = index.search(query_vec, k)
-    idxs = indices[0]
-    results = []
-    for i in idxs:
-        if 0 <= i < len(metadata):
-            results.append(metadata[i])
-    return results
+) -> List[Dict[str, Any]]:
+    
+    if not client.collection_exists(collection_name):
+        return []
 
-
-def load_faq_data(path: str):
-    """Загружает FAQ данные из JSON файла."""
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
-
-
+    results = client.search(
+        collection_name=collection_name,
+        query_vector=query_vec,
+        limit=k
+    )
+    
+    return [hit.payload for hit in results]
