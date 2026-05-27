@@ -7,16 +7,12 @@ from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharac
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams, PointStruct
 
-from backend.gigachat_client import GigaChatClient
+from backend.ollama_client import OllamaClient
 
 load_dotenv()
 
-GIGACHAT_CLIENT_ID = os.getenv("GIGACHAT_CLIENT_ID")
-GIGACHAT_CLIENT_SECRET = os.getenv("GIGACHAT_CLIENT_SECRET")
-if not GIGACHAT_CLIENT_ID or not GIGACHAT_CLIENT_SECRET:
-    raise RuntimeError("GIGACHAT_CLIENT_ID or GIGACHAT_CLIENT_SECRET is not set.")
-
-client = GigaChatClient(client_id=GIGACHAT_CLIENT_ID, client_secret=GIGACHAT_CLIENT_SECRET, verify=False)
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+client = OllamaClient(base_url=OLLAMA_BASE_URL)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -83,10 +79,10 @@ def main():
     print("Embedding texts...")
     texts = [doc["text"] for doc in documents]
     embeddings = []
-    batch_size = 10 # GigaChat обычно хорошо справляется с небольшими батчами
+    batch_size = 10 # Batch processing
     for i in range(0, len(texts), batch_size):
         batch = texts[i:i+batch_size]
-        batch_embeddings = client.get_embeddings(batch)
+        batch_embeddings = client.get_embeddings(batch, model="bge-m3")
         embeddings.extend(batch_embeddings)
         print(f"Embedded {min(i+batch_size, len(texts))}/{len(texts)}")
 

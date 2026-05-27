@@ -11,11 +11,21 @@ services:
       - ./rag:/app/rag
       - ./.env:/app/.env
     environment:
-      # Заменяем localhost на имя сервиса n8n в docker-сети
       - N8N_WEBHOOK_URL=http://n8n:5678/webhook/ticket
+      - OLLAMA_BASE_URL=http://ollama:11434
     restart: unless-stopped
     depends_on:
       - n8n
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    restart: unless-stopped
 
   n8n:
     image: docker.n8n.io/n8nio/n8n:latest
@@ -34,3 +44,4 @@ services:
 
 volumes:
   n8n_data:
+  ollama_data:

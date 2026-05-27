@@ -11,19 +11,15 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 
 from qdrant_client import QdrantClient
-from .gigachat_client import GigaChatClient
+from .ollama_client import OllamaClient
 from .rag_index import load_qdrant_client, search_similar
 
 load_dotenv()
 
-GIGACHAT_CLIENT_ID = os.getenv("GIGACHAT_CLIENT_ID")
-GIGACHAT_CLIENT_SECRET = os.getenv("GIGACHAT_CLIENT_SECRET")
-if not GIGACHAT_CLIENT_ID or not GIGACHAT_CLIENT_SECRET:
-    raise RuntimeError("GIGACHAT_CLIENT_ID or GIGACHAT_CLIENT_SECRET is not set. Please set it in your environment or in a .env file.")
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+client = OllamaClient(base_url=OLLAMA_BASE_URL)
 
 N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "http://localhost:5678/webhook/ticket")
-
-client = GigaChatClient(client_id=GIGACHAT_CLIENT_ID, client_secret=GIGACHAT_CLIENT_SECRET, verify=False)
 
 app = FastAPI(title="SOLV FAQ RAG Assistant")
 
@@ -58,7 +54,7 @@ class TicketRequest(BaseModel):
     message: str
 
 def embed_text(texts: List[str]) -> list:
-    vectors = client.get_embeddings(texts)
+    vectors = client.get_embeddings(texts, model="bge-m3")
     return vectors[0]
 
 @app.post("/chat", response_model=ChatResponse)
@@ -93,7 +89,7 @@ async def chat(req: ChatRequest) -> ChatResponse:
         {"role": "user", "content": f"Вопрос: {req.message}\n\nКонтекст базы знаний:\n{context_text}"},
     ]
 
-    answer = client.chat(messages=messages, temperature=req.temperature)
+    answer = client.chat(messages=messages, model="gemma4:e4b-mlx", temperature=req.temperature)
     
     suggest_ticket = False
     if "я не знаю" in answer.lower() or "создайте обращение" in answer.lower():
