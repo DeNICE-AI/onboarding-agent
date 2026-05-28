@@ -9,14 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #0A0E1A;
-      --text-main: #F8FAFC;
-      --text-muted: #94A3B8;
-      --primary: #6366F1;
-      --secondary: #06B6D4;
-      --card-bg: rgba(30, 41, 59, 0.4);
-      --card-border: rgba(255, 255, 255, 0.06);
-      --form-bg: rgba(15, 23, 42, 0.6);
+      --bg-color: #FAFAF9;
+      --text-main: #0F172A;
+      --text-muted: #475569;
+      --primary: #03BE93;
+      --secondary: #074A44;
+      --card-bg: #FFFFFF;
+      --card-border: rgba(15, 23, 42, 0.06);
+      --form-bg: rgba(15, 23, 42, 0.03);
     }
 
     * {
@@ -39,8 +39,8 @@
       width: 600px;
       height: 600px;
       background: radial-gradient(circle, var(--secondary) 0%, transparent 60%);
-      opacity: 0.15;
-      filter: blur(100px);
+      opacity: 0.12;
+      filter: blur(120px);
       z-index: -1;
       border-radius: 50%;
     }
@@ -74,7 +74,7 @@
       font-size: 24px;
       font-weight: 800;
       letter-spacing: -1px;
-      background: linear-gradient(to right, var(--text-main), var(--primary));
+      background: linear-gradient(to right, var(--secondary), var(--primary));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -91,7 +91,7 @@
       line-height: 1.1;
       margin-bottom: 24px;
       letter-spacing: -2px;
-      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary) 100%);
+      background: linear-gradient(135deg, var(--text-main) 50%, var(--secondary) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -116,7 +116,7 @@
 
     .btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+      box-shadow: 0 10px 20px rgba(3, 190, 147, 0.25);
     }
 
     /* Projects Section */
@@ -142,16 +142,17 @@
       border: 1px solid var(--card-border);
       border-radius: 20px;
       padding: 32px;
-      backdrop-filter: blur(10px);
-      transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+      transition: transform 0.3s ease, border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
       display: flex;
       flex-direction: column;
     }
 
     .card:hover {
       transform: translateY(-10px);
-      border-color: rgba(99, 102, 241, 0.3);
-      background: rgba(30, 41, 59, 0.6);
+      border-color: rgba(3, 190, 147, 0.3);
+      box-shadow: 0 20px 40px rgba(3, 190, 147, 0.08);
+      background: #FFFFFF;
     }
 
     .card h3 {
@@ -215,9 +216,9 @@
       max-width: calc(100vw - 64px);
       height: 520px;
       max-height: calc(100vh - 140px);
-      background: rgba(10, 14, 26, 0.95);
+      background: rgba(7, 48, 45, 0.98);
       border-radius: 24px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 20px 60px rgba(7, 48, 45, 0.25);
       display: flex;
       flex-direction: column;
       overflow: hidden;
