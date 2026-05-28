@@ -9,14 +9,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #07302D;
-      --text-main: #FFFFFF;
-      --text-muted: #D9D9D9;
-      --primary: #03BE93;
-      --secondary: #038073;
-      --card-bg: rgba(255, 255, 255, 0.05);
-      --card-border: rgba(255, 255, 255, 0.1);
-      --form-bg: rgba(0, 0, 0, 0.2);
+      --bg-color: #0A0E1A;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --primary: #6366F1;
+      --secondary: #06B6D4;
+      --card-bg: rgba(30, 41, 59, 0.4);
+      --card-border: rgba(255, 255, 255, 0.06);
+      --form-bg: rgba(15, 23, 42, 0.6);
     }
 
     * {
@@ -91,6 +91,9 @@
       line-height: 1.1;
       margin-bottom: 24px;
       letter-spacing: -2px;
+      background: linear-gradient(135deg, #FFFFFF 40%, var(--primary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     .hero p {
@@ -147,8 +150,8 @@
 
     .card:hover {
       transform: translateY(-10px);
-      border-color: rgba(255, 255, 255, 0.15);
-      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(99, 102, 241, 0.3);
+      background: rgba(30, 41, 59, 0.6);
     }
 
     .card h3 {
@@ -212,7 +215,7 @@
       max-width: calc(100vw - 64px);
       height: 520px;
       max-height: calc(100vh - 140px);
-      background: rgba(7, 48, 45, 0.95);
+      background: rgba(10, 14, 26, 0.95);
       border-radius: 24px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
       display: flex;
