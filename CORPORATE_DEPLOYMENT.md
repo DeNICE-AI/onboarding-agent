@@ -39,7 +39,12 @@
    sudo docker exec ollama ollama pull bge-m3
    sudo docker exec ollama ollama pull gemma4:e4b
    ```
-   *(Если используете другую модель, обновите ее в `backend/app.py` и здесь)*.
+   *(Если используете другую модель, создайте файл `.env` в папке проекта и добавьте переменные:)*
+   ```env
+   LLM_MODEL=gemma4:e4b
+   OLLAMA_KEEP_ALIVE=-1
+   ```
+   *(Параметр OLLAMA_KEEP_ALIVE=-1 не позволит выгружать модель из видеопамяти, обеспечивая мгновенные ответы).*
 3. Пересоберите базу знаний:
    ```bash
    sudo docker exec solv-agent python backend/build_index.py
