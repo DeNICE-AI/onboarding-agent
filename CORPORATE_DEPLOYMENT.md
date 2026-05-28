@@ -1,144 +1,105 @@
-# 🚀 Полное руководство по развертыванию SOLV на корпоративном сервере с GPU
+# 🚀 Полное руководство по развертыванию SOLV на корпоративном сервере TOFSGROUP
 
-Это пошаговое руководство описывает процесс переноса проекта `onboarding-agent` на чистый корпоративный Linux-сервер (Ubuntu/Debian) с использованием мощной видеокарты (GPU) и модели `gemma4:e4b`.
-
----
-
-## Шаг 1. Базовая настройка сервера
-
-1. Подключитесь к серверу по SSH:
-   ```bash
-   ssh user@your-server-ip
-   ```
-2. Обновите систему:
-   ```bash
-   sudo apt update && sudo apt upgrade -y
-   ```
-3. Установите необходимые пакеты (Git, Nginx, Certbot):
-   ```bash
-   sudo apt install -y git nginx certbot python3-certbot-nginx
-   ```
+Это пошаговое руководство описывает процесс развертывания проекта `onboarding-agent` на корпоративном сервере (`adminofs@OFSHGPM287`) с доменом `ai.tofsgroup.ru`. 
 
 ---
 
-## Шаг 2. Установка Docker и NVIDIA Container Toolkit
+## 🛠 Рабочий процесс (Workflow)
 
-Чтобы Ollama могла использовать вашу видеокарту внутри Docker, необходимо установить официальные драйверы.
+**Критически важно:** Мы **не запускаем** Docker локально на рабочем месте во время доработок. 
+1. Все изменения кода (дизайн, логика) делаются в локальной директории разработчика.
+2. Изменения отправляются в репозиторий через Git (`git add`, `git commit`, `git push`).
+3. На боевом сервере выполняется `git pull`, после чего контейнеры перезапускаются для применения изменений.
 
-1. **Установите Docker** (если еще не установлен):
-   ```bash
-   curl -fsSL https://get.docker.com -o get-docker.sh
-   sudo sh get-docker.sh
-   ```
-2. **Установите драйверы NVIDIA** (если они еще не стоят на сервере):
-   ```bash
-   sudo apt install -y nvidia-driver-535  # Или другая актуальная версия для вашей карты
-   ```
-3. **Установите NVIDIA Container Toolkit** (КРИТИЧЕСКИ ВАЖНО для проброса видеокарты в Docker):
-   ```bash
-   curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
-     && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-       sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-       sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+---
 
-   sudo apt update
-   sudo apt install -y nvidia-container-toolkit
-   ```
-4. Перезапустите службу Docker для применения изменений:
+## Шаг 1. Настройка сервера и скачивание проекта
+
+1. Подключитесь к серверу:
    ```bash
-   sudo systemctl restart docker
+   ssh adminofs@OFSHGPM287
+   ```
+2. Перейдите в папку проекта и обновите код:
+   ```bash
+   cd ~/onboarding-agent
+   git pull origin main
    ```
 
 ---
 
-## Шаг 3. Клонирование проекта
+## Шаг 2. Запуск контейнеров
 
-Скачайте исходный код проекта с вашего GitHub (потребуется настроить SSH ключи или ввести токен, если репозиторий приватный):
-
-```bash
-git clone https://github.com/DeNICE-AI/onboarding-agent.git
-cd onboarding-agent
-```
-
----
-
-## Шаг 4. Подготовка кода (Переход на мощную модель и кэш VRAM)
-
-Поскольку у вас есть мощная видеокарта, нам нужно убрать "костыли" для слабых ПК и включить использование новой модели.
-
-### 4.1. Изменение модели в `backend/app.py`
-Откройте файл `backend/app.py` любым редактором (например, `nano backend/app.py`):
-Найдите строку (около 88 строки):
-```python
-    answer = client.chat(messages=messages, model="gemma2:2b", temperature=req.temperature)
-```
-Замените `"gemma2:2b"` на `"gemma4:e4b"`:
-```python
-    answer = client.chat(messages=messages, model="gemma4:e4b", temperature=req.temperature)
-```
-
-### 4.2. Включение кэширования в памяти (Оптимизация скорости)
-Откройте файл `backend/ollama_client.py` (`nano backend/ollama_client.py`).
-Удалите или закомментируйте **все три** строчки `"keep_alive": 0,`. 
-Без них Ollama будет постоянно держать модели в VRAM видеокарты, что обеспечит мгновенные ответы бота.
-
----
-
-## Шаг 5. Настройка `docker-compose.yml` для видеокарты
-
-Откройте `docker-compose.yml` (`nano docker-compose.yml`) и добавьте блок `deploy` в сервис `ollama`, чтобы Docker отдал контейнеру доступ к GPU. Должно получиться так:
-
-```yaml
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    volumes:
-      - ollama_data:/root/.ollama
-    ports:
-      - "11434:11434"
-    # ЭТОТ БЛОК ПРОБРАСЫВАЕТ ВИДЕОКАРТУ ВНУТРЬ КОНТЕЙНЕРА
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-```
-
-*(Опционально: если вы используете Nginx, привяжите порты `solv-agent` и `n8n` к `127.0.0.1`, чтобы закрыть их от внешнего мира, как описано в основном `README.md`)*.
-
----
-
-## Шаг 6. Запуск и загрузка моделей
-
-1. Запустите сборку и старт всех контейнеров:
+В проекте используется локальный LLM (Ollama) и n8n для автоматизации. 
+1. Пересоберите и запустите контейнеры:
    ```bash
    sudo docker compose up -d --build
    ```
-2. Скачайте эмбеддинг-модель:
+2. Убедитесь, что загружены необходимые модели:
    ```bash
    sudo docker exec ollama ollama pull bge-m3
-   ```
-3. Скачайте вашу основную модель:
-   ```bash
    sudo docker exec ollama ollama pull gemma4:e4b
    ```
-   *(Примечание: Убедитесь, что модель gemma4:e4b существует в реестре Ollama под таким точным именем, или используйте соответствующий тег, например `gemma:7b` и т.д.)*.
-
-4. Пересоберите базу знаний (вектора):
+   *(Если используете другую модель, обновите ее в `backend/app.py` и здесь)*.
+3. Пересоберите базу знаний:
    ```bash
    sudo docker exec solv-agent python backend/build_index.py
    ```
 
 ---
 
-## Шаг 7. Настройка доменов и HTTPS (Nginx)
+## Шаг 3. Настройка Nginx и SSL для ai.tofsgroup.ru
 
-Выполните шаги из основного `README.md` (Раздел 2), чтобы:
-1. Создать конфиги Nginx для `chat.company.com` и `n8n.company.com`.
-2. Включить проксирование на порты `8000` и `5678`.
-3. Выполнить `sudo certbot --nginx` для получения бесплатного SSL сертификата HTTPS.
+На сервере уже установлены корпоративные SSL-сертификаты. Их пути:
+- Сертификат: `/etc/ssl/certs/ai.tofsgroup.ru.crt`
+- Ключ: `/etc/ssl/private/ai.tofsgroup.ru.key`
+
+1. Откройте конфигурацию Nginx:
+   ```bash
+   sudo nano /etc/nginx/sites-available/ai.tofsgroup.ru
+   ```
+2. Пропишите конфигурацию (пример для проксирования чата на порт 8000):
+   ```nginx
+   server {
+       listen 80;
+       server_name ai.tofsgroup.ru;
+       return 301 https://$host$request_uri;
+   }
+
+   server {
+       listen 443 ssl;
+       server_name ai.tofsgroup.ru;
+
+       ssl_certificate /etc/ssl/certs/ai.tofsgroup.ru.crt;
+       ssl_certificate_key /etc/ssl/private/ai.tofsgroup.ru.key;
+
+       ssl_protocols TLSv1.2 TLSv1.3;
+       ssl_ciphers HIGH:!aNULL:!MD5;
+
+       location / {
+           proxy_pass http://127.0.0.1:8000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+3. Проверьте конфигурацию и перезапустите Nginx:
+   ```bash
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
 
 ---
-**🎉 Готово! Ваш ИИ-ассистент теперь работает на всю мощь корпоративной видеокарты!**
+
+## Шаг 4. Настройка n8n (Почта и Автоматизация)
+
+Если вам необходимо, чтобы n8n отправлял уведомления на почту, потребуется настроить SMTP внутри n8n.
+1. Откройте интерфейс n8n (через SSH туннель или настройте Nginx для проксирования порта 5678).
+2. В workflow используйте ноду `Send Email`.
+3. Укажите корпоративные SMTP-настройки:
+   - Хост: (ваш корпоративный SMTP-сервер)
+   - Порт: 465 (SSL) или 587 (TLS)
+   - Учетные данные: создайте в Credentials менеджере n8n корпоративную почту и пароль (или App Password).
+
+**Готово!** Ваш ассистент доступен по адресу `https://ai.tofsgroup.ru`.

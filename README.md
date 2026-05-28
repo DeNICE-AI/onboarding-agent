@@ -66,13 +66,15 @@
 
 ## 2. Разворачивание на боевом сервере (Production)
 
-Для публикации проекта в интернете на собственном сервере с реальным доменом (например, `chat.company.com` и `n8n.company.com`) и безопасным HTTPS, необходимо настроить **Nginx** в качестве Reverse Proxy (обратного прокси) и выпустить SSL-сертификаты с помощью **Certbot (Let's Encrypt)**.
+Для публикации проекта в интернете на собственном сервере с реальным доменом (например, `chat.your-domain.com` и `n8n.your-domain.com`) и безопасным HTTPS, необходимо настроить **Nginx** в качестве Reverse Proxy (обратного прокси) и выпустить SSL-сертификаты с помощью **Certbot (Let's Encrypt)**.
+
+*(Примечание: Корпоративные спецификации по деплою и безопасности см. во внутренней документации)*
 
 ### Шаг 1. Подготовка сервера
 1. Арендуйте Linux-сервер (рекомендуется Ubuntu 22.04/24.04). **Минимальные требования:** 8-16 ГБ ОЗУ (в зависимости от размера модели).
 2. Привяжите ваши домены к IP-адресу сервера в панели вашего DNS-провайдера. 
-   - `chat.company.com` -> IP сервера
-   - `n8n.company.com` -> IP сервера
+   - `chat.your-domain.com` -> IP сервера
+   - `n8n.your-domain.com` -> IP сервера
 3. Установите Docker, Docker Compose, Nginx и Certbot:
    ```bash
    sudo apt update
@@ -107,11 +109,11 @@ services:
 Создайте конфигурационные файлы для Nginx, чтобы направить трафик с доменов на нужные порты контейнеров.
 
 **Для чат-бота (solv-agent):**
-Создайте файл `sudo nano /etc/nginx/sites-available/chat.company.com`:
+Создайте файл `sudo nano /etc/nginx/sites-available/chat.your-domain.com`:
 ```nginx
 server {
     listen 80;
-    server_name chat.company.com;
+    server_name chat.your-domain.com;
 
     location / {
         proxy_pass http://127.0.0.1:8000;
@@ -124,11 +126,11 @@ server {
 ```
 
 **Для n8n:**
-Создайте файл `sudo nano /etc/nginx/sites-available/n8n.company.com`:
+Создайте файл `sudo nano /etc/nginx/sites-available/n8n.your-domain.com`:
 ```nginx
 server {
     listen 80;
-    server_name n8n.company.com;
+    server_name n8n.your-domain.com;
 
     location / {
         proxy_pass http://127.0.0.1:5678;
@@ -147,8 +149,8 @@ server {
 
 Активируйте сайты и перезапустите Nginx:
 ```bash
-sudo ln -s /etc/nginx/sites-available/chat.company.com /etc/nginx/sites-enabled/
-sudo ln -s /etc/nginx/sites-available/n8n.company.com /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/chat.your-domain.com /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/n8n.your-domain.com /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
@@ -156,14 +158,14 @@ sudo systemctl restart nginx
 ### Шаг 4. Установка SSL (HTTPS)
 Выпустите бесплатные сертификаты Let's Encrypt. Certbot автоматически модифицирует конфигурацию Nginx для поддержки HTTPS.
 ```bash
-sudo certbot --nginx -d chat.company.com
-sudo certbot --nginx -d n8n.company.com
+sudo certbot --nginx -d chat.your-domain.com
+sudo certbot --nginx -d n8n.your-domain.com
 ```
 
 ### Шаг 5. Как получить доступ в боевом режиме?
 После успешной настройки:
-1. Сайт с ботом будет доступен по защищенному адресу: `https://chat.company.com`.
-2. Панель управления n8n будет доступна по адресу: `https://n8n.company.com`. *Рекомендуется немедленно зайти в панель n8n и установить надежный пароль администратора, чтобы закрыть публичный доступ к настройкам.*
+1. Сайт с ботом будет доступен по защищенному адресу: `https://chat.your-domain.com`.
+2. Панель управления n8n будет доступна по адресу: `https://n8n.your-domain.com`. *Рекомендуется немедленно зайти в панель n8n и установить надежный пароль администратора, чтобы закрыть публичный доступ к настройкам.*
 3. Внешним сервисам (и сайту) доступ к Ollama (порт 11434) предоставлять **не нужно**! Контейнер `solv-agent` общается с `ollama` по внутренней закрытой сети Docker.
 
 ---
