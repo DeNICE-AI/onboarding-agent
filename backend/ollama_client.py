@@ -1,5 +1,12 @@
+import os
 import requests
 from typing import List, Dict, Any
+
+_keep_alive_env = os.getenv("OLLAMA_KEEP_ALIVE", "0")
+try:
+    OLLAMA_KEEP_ALIVE = int(_keep_alive_env)
+except ValueError:
+    OLLAMA_KEEP_ALIVE = _keep_alive_env
 
 class OllamaClient:
     def __init__(self, base_url: str = "http://localhost:11434"):
@@ -11,7 +18,7 @@ class OllamaClient:
             "model": model,
             "messages": messages,
             "stream": False,
-            "keep_alive": 0,
+            "keep_alive": OLLAMA_KEEP_ALIVE,
             "options": {
                 "temperature": temperature
             }
@@ -25,7 +32,7 @@ class OllamaClient:
         payload = {
             "model": model,
             "input": texts,
-            "keep_alive": 0
+            "keep_alive": OLLAMA_KEEP_ALIVE
         }
         response = requests.post(url, json=payload, timeout=60)
         
@@ -37,7 +44,7 @@ class OllamaClient:
             for text in texts:
                 res = requests.post(
                     f"{self._base_url}/api/embeddings", 
-                    json={"model": model, "prompt": text, "keep_alive": 0},
+                    json={"model": model, "prompt": text, "keep_alive": OLLAMA_KEEP_ALIVE},
                     timeout=60
                 )
                 res.raise_for_status()
