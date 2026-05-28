@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8" />
   <title>Corporate Portal | Onboarding</title>
@@ -9,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #969696;
+      --bg-color: #D9D9D9;
       --text-main: #0F172A;
       --text-muted: #334155;
       --primary: #03BE93;
@@ -393,26 +394,33 @@
       margin-top: 10px;
       border: 1px solid var(--card-border);
     }
+
     .ticket-form.visible {
       display: flex;
     }
-    .ticket-input, .ticket-textarea {
+
+    .ticket-input,
+    .ticket-textarea {
       width: 100%;
       background: transparent;
-      border: 1px solid rgba(255,255,255,0.2);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
       padding: 8px 12px;
       color: #fff;
       font-family: inherit;
     }
-    .ticket-input:focus, .ticket-textarea:focus {
+
+    .ticket-input:focus,
+    .ticket-textarea:focus {
       outline: none;
       border-color: var(--primary);
     }
+
     .ticket-textarea {
       resize: vertical;
       min-height: 60px;
     }
+
     .ticket-submit {
       background: linear-gradient(135deg, var(--primary), var(--secondary));
       color: #fff;
@@ -422,9 +430,11 @@
       cursor: pointer;
       font-weight: 600;
     }
+
     .ticket-submit:hover {
       opacity: 0.9;
     }
+
     .btn-suggest-ticket {
       display: inline-block;
       margin-top: 8px;
@@ -452,18 +462,33 @@
       animation: blink 1.4s infinite ease-in-out both;
     }
 
-    .dot:nth-child(1) { animation-delay: -0.32s; }
-    .dot:nth-child(2) { animation-delay: -0.16s; }
-
-    @keyframes blink {
-      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
-      40% { opacity: 1; transform: scale(1); }
+    .dot:nth-child(1) {
+      animation-delay: -0.32s;
     }
 
+    .dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes blink {
+
+      0%,
+      80%,
+      100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+      }
+
+      40% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
   </style>
 </head>
+
 <body>
-  
+
   <div class="glow top-left"></div>
   <div class="glow bottom-right"></div>
 
@@ -475,14 +500,15 @@
 
     <section class="hero">
       <h1>Служба поддержки SOLV</h1>
-      <p>Единое окно для решения всех ИТ-вопросов. Наш интеллектуальный ассистент и специалисты поддержки всегда готовы помочь.</p>
+      <p>Единое окно для решения всех ИТ-вопросов. Наш интеллектуальный ассистент и специалисты поддержки всегда готовы
+        помочь.</p>
       <a href="#onboarding" class="btn">Перейти к сервисам</a>
     </section>
 
     <section id="onboarding" class="projects">
       <h2 class="section-title">Полезные сервисы</h2>
       <div class="grid">
-        
+
         <div class="card">
           <h3>База знаний</h3>
           <p>Инструкции по настройке VPN, доступу к почте, VDI и ERP системам.</p>
@@ -531,7 +557,8 @@
     <div class="chat-footer">
       <input id="chat-input" class="chat-input" placeholder="Напишите вопрос..." />
       <button id="chat-send" class="chat-send" aria-label="Отправить">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"></line>
           <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
         </svg>
@@ -541,7 +568,7 @@
 
   <script>
     // В продакшене путь будет зависеть от того, как развернут сервер (можно оставить относительным или абсолютным)
-    const API_BASE = ""; 
+    const API_BASE = "";
 
     const launcher = document.getElementById("chat-launcher");
     const widget = document.getElementById("chat-widget");
@@ -557,7 +584,7 @@
       const div = document.createElement("div");
       div.className = "chat-message " + from;
       div.textContent = text;
-      
+
       if (suggestTicket) {
         const btn = document.createElement("button");
         btn.className = "btn-suggest-ticket";
@@ -574,7 +601,7 @@
     function showTicketForm(parentDiv) {
       // Remove any existing forms first
       document.querySelectorAll(".ticket-form").forEach(f => f.remove());
-      
+
       const form = document.createElement("div");
       form.className = "ticket-form visible";
       form.innerHTML = `
@@ -589,7 +616,7 @@
         const subject = document.getElementById("ticket-subject").value.trim();
         const msg = document.getElementById("ticket-message").value.trim();
         if (!subject || !msg) return alert("Заполните все поля");
-        
+
         try {
           const res = await fetch(API_BASE + "/api/ticket", {
             method: "POST",
@@ -685,4 +712,5 @@
     });
   </script>
 </body>
+
 </html>
