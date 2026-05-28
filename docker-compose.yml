@@ -4,36 +4,37 @@ services:
   solv-agent:
     build: .
     container_name: solv-agent
-    ports:
-      - "8000:8000"
+    network_mode: host
     volumes:
       - ./data:/app/data
       - ./rag:/app/rag
       - ./.env:/app/.env
     environment:
-      - N8N_WEBHOOK_URL=http://n8n:5678/webhook/ticket
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - N8N_WEBHOOK_URL=http://127.0.0.1:5678/webhook/ticket
+      - OLLAMA_BASE_URL=http://127.0.0.1:11434
       - LLM_MODEL=${LLM_MODEL:-gemma2:2b}
       - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:-0}
     restart: unless-stopped
-    depends_on:
-      - n8n
-      - ollama
 
   ollama:
     image: ollama/ollama:latest
     container_name: ollama
-    ports:
-      - "11434:11434"
+    network_mode: host
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   n8n:
     image: docker.n8n.io/n8nio/n8n:latest
     container_name: n8n
-    ports:
-      - "5678:5678"
+    network_mode: host
     volumes:
       - n8n_data:/home/node/.n8n
     environment:
