@@ -75,16 +75,26 @@ def main():
 
     print(f"Total chunks created: {len(documents)}")
 
-    # Эмбеддинг (отправляем батчами чтобы не превысить лимиты)
+    # Эмбеддинг (отправляем по одному с подробным отчетом при ошибке)
     print("Embedding texts...")
-    texts = [doc["text"] for doc in documents]
     embeddings = []
-    batch_size = 10 # Batch processing
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i:i+batch_size]
-        batch_embeddings = client.get_embeddings(batch, model="bge-m3")
-        embeddings.extend(batch_embeddings)
-        print(f"Embedded {min(i+batch_size, len(texts))}/{len(texts)}")
+    for idx, doc in enumerate(documents):
+        try:
+            vec = client.get_embeddings([doc["text"]], model="bge-m3")[0]
+            embeddings.append(vec)
+            if (idx + 1) % 5 == 0 or (idx + 1) == len(documents):
+                print(f"Embedded {idx + 1}/{len(documents)}")
+        except Exception as e:
+            print("\n❌ Ошибка при получении эмбеддинга!")
+            print(f"Индекс чанка: {idx}")
+            print(f"Файл: {doc['source']}")
+            print(f"Заголовок: {doc['title']}")
+            print(f"Длина текста: {len(doc['text'])} символов")
+            print("Содержимое текста:\n---")
+            print(doc['text'])
+            print("---\n")
+            print(f"Детали ошибки: {e}")
+            raise e
 
     if not embeddings:
         print("No embeddings generated. Exiting.")
