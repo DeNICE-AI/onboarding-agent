@@ -28,28 +28,29 @@ class OllamaClient:
         return response.json().get("message", {}).get("content", "")
 
     def get_embeddings(self, texts: List[str], model: str) -> List[List[float]]:
-        url = f"{self._base_url}/api/embed"
-        payload = {
-            "model": model,
-            "input": texts,
-            "keep_alive": OLLAMA_KEEP_ALIVE
-        }
-        response = requests.post(url, json=payload, timeout=60)
+        try:
+            url = f"{self._base_url}/api/embed"
+            payload = {
+                "model": model,
+                "input": texts,
+                "keep_alive": OLLAMA_KEEP_ALIVE
+            }
+            response = requests.post(url, json=payload, timeout=60)
+            if response.status_code == 200:
+                return response.json().get("embeddings", [])
+            else:
+                print(f"Batch embedding returned status {response.status_code}. Falling back to single embeddings...")
+        except Exception as e:
+            print(f"Batch embedding failed: {e}. Falling back to single embeddings...")
         
-        if response.status_code == 404:
-            # Fallback to older /api/embeddings endpoint if /api/embed is not available
-            # Note: /api/embeddings only accepts a single string prompt in older versions, 
-            # but newer versions might support arrays. We will loop if needed.
-            embeddings = []
-            for text in texts:
-                res = requests.post(
-                    f"{self._base_url}/api/embeddings", 
-                    json={"model": model, "prompt": text, "keep_alive": OLLAMA_KEEP_ALIVE},
-                    timeout=60
-                )
-                res.raise_for_status()
-                embeddings.append(res.json().get("embedding", []))
-            return embeddings
-
-        response.raise_for_status()
-        return response.json().get("embeddings", [])
+        # Fallback to older /api/embeddings endpoint if /api/embed is not available or failed
+        embeddings = []
+        for text in texts:
+            res = requests.post(
+                f"{self._base_url}/api/embeddings", 
+                json={"model": model, "prompt": text, "keep_alive": OLLAMA_KEEP_ALIVE},
+                timeout=60
+            )
+            res.raise_for_status()
+            embeddings.append(res.json().get("embedding", []))
+        return embeddings
