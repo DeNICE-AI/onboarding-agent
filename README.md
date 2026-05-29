@@ -6,7 +6,7 @@
 
 Проект полностью локален и независим от внешних API. В основе лежат следующие технологии:
 - **Backend**: FastAPI (Python), обслуживает как API, так и статические файлы (Frontend).
-- **LLM Engine**: Ollama (для локального запуска нейросетей). Используются модели `gemma2:2b` (генерация ответов) и `bge-m3` (создание эмбеддингов/векторов).
+- **LLM Engine**: Ollama (для локального запуска нейросетей). Используются модели `gemma4:e4b` (генерация ответов) и `bge-m3` (создание эмбеддингов/векторов).
 - **Vector Database**: Qdrant (локальная база `rag/` для хранения векторов).
 - **Автоматизация**: n8n (получает Webhook-и от бэкенда при необходимости создать тикет и может быть настроен на пересылку в Jira, Telegram и т.д.).
 - **Инфраструктура**: Docker & Docker Compose.
@@ -89,7 +89,7 @@
 Клонируйте проект и запустите его точно так же, как и локально:
 ```bash
 docker compose up -d --build
-docker exec ollama ollama pull gemma2:2b
+docker exec ollama ollama pull gemma4:e4b
 docker exec ollama ollama pull bge-m3
 docker exec solv-agent python backend/build_index.py
 ```
