@@ -29,7 +29,7 @@
    ```
 3. Скачайте необходимые нейромодели в контейнер Ollama:
    ```bash
-   docker exec ollama ollama pull gemma2:2b
+   docker exec ollama ollama pull gemma4:e4b
    docker exec ollama ollama pull bge-m3
    ```
 4. Соберите векторную базу знаний из файлов (из папки `data/`):
