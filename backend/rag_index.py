@@ -26,4 +26,10 @@ def search_similar(
         limit=k
     )
     
-    return [hit.payload for hit in results.points]
+    result_items = []
+    for hit in results.points:
+        item = hit.payload.copy() if hit.payload else {}
+        item["score"] = hit.score
+        result_items.append(item)
+        
+    return result_items

@@ -104,10 +104,21 @@ async def chat(req: ChatRequest) -> ChatResponse:
     LLM_MODEL = os.getenv("LLM_MODEL", "gemma4:e4b")
     answer = client.chat(messages=messages, model=LLM_MODEL, temperature=req.temperature)
     
+    RELEVANCE_THRESHOLD = float(os.getenv("RELEVANCE_THRESHOLD", "0.5"))
+    max_score = max([item.get("score", 0.0) for item in similar_items]) if similar_items else 0.0
+
     suggest_ticket = False
-    if "нет информации" in answer.lower() or "я не знаю" in answer.lower() or "создайте обращение" in answer.lower():
-        suggest_ticket = True
-        answer = "Я не знаю ответ на этот вопрос. Пожалуйста, создайте обращение в службу поддержки."
+    if max_score < RELEVANCE_THRESHOLD:
+        # Проверяем, не является ли сообщение простым приветствием
+        user_msg = req.message.lower().strip()
+        is_greeting = len(user_msg.split()) <= 3 and any(
+            g in user_msg for g in ["привет", "здравствуй", "добрый", "хай", "hello"]
+        )
+        
+        # Если это не простое приветствие, а порог не пройден, предлагаем тикет
+        if not is_greeting:
+            suggest_ticket = True
+            answer = "Я не знаю ответ на этот вопрос. Пожалуйста, создайте обращение в службу поддержки."
 
     return ChatResponse(answer=answer, context=similar_items, suggest_ticket=suggest_ticket)
 
