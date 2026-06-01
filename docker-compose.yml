@@ -12,7 +12,7 @@ services:
     environment:
       - N8N_WEBHOOK_URL=http://127.0.0.1:5678/webhook/ticket
       - OLLAMA_BASE_URL=http://127.0.0.1:11434
-      - LLM_MODEL=${LLM_MODEL:-gemma2:2b}
+      - LLM_MODEL=${LLM_MODEL:-gemma4:e4b}
       - OLLAMA_KEEP_ALIVE=${OLLAMA_KEEP_ALIVE:-0}
     restart: unless-stopped
 
