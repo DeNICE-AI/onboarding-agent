@@ -101,7 +101,7 @@ async def chat(req: ChatRequest) -> ChatResponse:
         messages.append(msg)
     messages.append({"role": "user", "content": f"Вопрос: {req.message}\n\nКонтекст базы знаний:\n{context_text}"})
 
-    LLM_MODEL = os.getenv("LLM_MODEL", "gemma2:2b")
+    LLM_MODEL = os.getenv("LLM_MODEL", "gemma4:e4b")
     answer = client.chat(messages=messages, model=LLM_MODEL, temperature=req.temperature)
     
     suggest_ticket = False
